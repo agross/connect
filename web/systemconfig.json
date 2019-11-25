@@ -14,30 +14,13 @@
     "supportModuleUrl":" https://s3-us-west-1.amazonaws.com/download-site/download-file/cwm_aplist",
     "mongodb": {
       "serverIP": "127.0.0.1",
-      "serverPort": 27010,
-      "useAuth": true
-    }
-
-  },
-  "Production_hualian":{
-    "enableHttp":true,
-    "serverIP":"",
-    "port":30002,
-    "sslport":30001,
-    "starterEdition":false,
-    "base_url": "",
-    "jwt_secret":"b3eaad0a469d13a884f3d09e0952b72b",
-    "client":"*",
-    "taskValidity":30,
-    "supportModuleUrl":"https://s3-us-west-1.amazonaws.com/download-site/download-file/cwm_aplist_hualien_edu",
-    "mongodb": {
-      "serverIP": "127.0.0.1",
-      "serverPort": 27010,
+      "serverPort": 27017,
       "useAuth": true
     }
   },
   "production":{
     "enableHttp":true,
+    "serverIP": "",
     "port":30002,
     "sslport":30001,
     "starterEdition":false,
@@ -45,6 +28,12 @@
     "jwt_secret":"b3eaad0a469d13a884f3d09e0952b72b",
     "client":"*",
     "taskValidity":30,
-    "supportModuleUrl":" https://s3-us-west-1.amazonaws.com/download-site/download-file/cwm_aplist"
+    "supportModuleUrl":" https://s3-us-west-1.amazonaws.com/download-site/download-file/cwm_aplist",
+    "mongodb": {
+      "serverIP": "db",
+      "serverPort": 27017,
+      "useAuth": true,
+      "password": "abc123"
+    }
   }
 }

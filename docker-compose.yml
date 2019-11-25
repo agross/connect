@@ -1,62 +1,63 @@
 version: '3'
-services:
-  DB:
-    container_name: mongo
-    image: 'mongo:3.6.11'
-#    restart: 'always'
-    ports:
-      - '27010:27010'
-    volumes:
-      - 'MONGO-DATA:/data/db'
-      - '/etc/localtime:/etc/localtime'
-      - './entrypoint-initdb.sh:/docker-entrypoint-initdb.d/entrypoint-initdb.sh'
-    network_mode: host
-#    environment:
-#      - MONGO_INITDB_ROOT_USERNAME=admin
-#      - MONGO_INITDB_ROOT_PASSWORD=admin
-    command: 'mongod --port 27010  --auth'
- 
-  CORE:
-#    environment:
-#      - NODE_ENV=Production_hualian
-    container_name: nuclias_connect_core 
-    image: 'nuclias/nuclias_connect_core:1.0.0.41'
-    restart: 'always'
-    ports:
-      - '8443:8443'
-      - '62992:62992'
-    volumes:
-      - './appconfig.json:/app/config/appconfig.json'
-#      - './dbConfig.js:/app/node_modules/DView-SP1-common/db/dbConfig.js'
-      - './log/core/logFiles:/app/logFiles'
-      - '/etc/localtime:/etc/localtime'
-    network_mode: host
-    depends_on:
-      - DB
-    command: './nuclias_connect_core'
-    privileged: true
 
-  WEB:
-#    environment:
-#      - NODE_ENV=Production_hualian
-    container_name: nuclias_connect_web
-    image: 'nuclias/nuclias_connect_web:1.0.0.41'
-    restart: 'always'
+services:
+  db:
+    image: mongo:3.6.11
+    restart: always
     ports:
-      - '30001:30001'
+      # Need to publish such that core (on the host network) can talk to the DB.
+      - 127.0.0.1:27017:27017
     volumes:
-      - './config/systemconfig.json:/app/config/systemconfig.json'
-      - './customer:/app/customer'
-#      - './dbConfig.js:/app/node_modules/DView-SP1-common/db/dbConfig.js'
-      - './log/web/logFiles:/app/logFiles'
-      - '/etc/localtime:/etc/localtime'
+      - /etc/localtime:/etc/localtime
+      - mongo-config:/data/configdb
+      - mongo-data:/data/db
+      - ./mongo/entrypoint-initdb.sh:/docker-entrypoint-initdb.d/entrypoint-initdb.sh
+    environment:
+      # See .env file.
+      - MONGO_INITDB_DATABASE
+      - MONGO_INITDB_ROOT_USERNAME
+      - MONGO_INITDB_ROOT_PASSWORD
+      - MONGO_NON_ROOT_USERNAME
+      - MONGO_NON_ROOT_PASSWORD
+    command: --bind_ip_all
+
+  core:
+    image: nuclias/nuclias_connect_core:1.0.0.41
+    command: ./nuclias_connect_core
+    restart: always
+    # Required for Layer 2 discovery.
     network_mode: host
+    privileged: true
+    # Just for documentation, network_mode: host makes this unneccessary.
+    # ports:
+    #  - 8443:8443
+    #  - 62992:62992
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./core/appconfig.json:/app/config/appconfig.json
+    tmpfs:
+      - /app/logFiles
     depends_on:
-      - CORE
-    command: './nuclias_connect_web'
-    privileged: true 
+      - db
+
+  web:
+    image: nuclias/nuclias_connect_web:1.0.0.41
+    command: ./nuclias_connect_web
+    restart: always
+    ports:
+      - 30001:30001
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ./web/systemconfig.json:/app/config/systemconfig.json
+      - ./web/customer:/app/customer
+    tmpfs:
+      - /app/logFiles
+    environment:
+      NODE_ENV: production
+    depends_on:
+      - db
+      - core
 
 volumes:
-  MONGO-DATA:
-
-
+  mongo-config:
+  mongo-data:
